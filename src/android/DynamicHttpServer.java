@@ -1,6 +1,7 @@
 package uk.org.dsf.cordova.dynamichttp;
 
-import java.io.ByteArrayInputStream;
+import android.util.Base64;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
@@ -201,8 +202,16 @@ public class DynamicHttpServer extends CordovaPlugin {
 
         private Response generateResponse (IStatus status, String contentType, String content)
         {
-            if (status == null) status = Status.INTERNAL_ERROR;
-            return Response.newFixedLengthResponse (status, contentType, content);
+            if (status == null) {
+                status = Status.INTERNAL_ERROR;
+            }
+            if (contentType.equals("application/octet-stream")) {
+                if (content.startsWith("data:")) {
+                    content = content.split(",")[1];
+                }
+                return Response.newFixedLengthResponse(status, contentType, Base64.decode(content, android.util.Base64.DEFAULT));
+            }
+            return Response.newFixedLengthResponse(status, contentType, content);
         }
 
         private JSONObject buildCookieMap (CookieHandler cookies) throws JSONException
